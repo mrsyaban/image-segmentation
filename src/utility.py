@@ -23,14 +23,30 @@ class ImageDisplayWindow(QMainWindow):
 
         # Create the image labels
         self.image_labels = []
+        self.captions = ["", "", ""]
+        self.caption_labels = []
         for i in range(3):
             image_label = QLabel()
             image_label.setPixmap(self.get_initial_pixmap())
             if (i == 0):
                 layout.addWidget(image_label,  alignment=Qt.AlignCenter)
+                caption_label = QLabel(self.captions[i])
+                caption_label.setAlignment(Qt.AlignCenter)
+                layout.addWidget(caption_label)
             else :
-                self.segmentedLayout.addWidget(image_label)
+                imageFrame = QFrame()
+                imageLayout = QVBoxLayout()
+                imageLayout.setAlignment(Qt.AlignCenter)
+                imageFrame.setLayout(imageLayout)
+                imageLayout.addWidget(image_label)
+                caption_label = QLabel(self.captions[i])
+                caption_label.setAlignment(Qt.AlignCenter)
+                imageLayout.addWidget(caption_label)
+                self.segmentedLayout.addWidget(imageFrame)
+
             self.image_labels.append(image_label)
+
+            self.caption_labels.append(caption_label)
         
         layout.addWidget(self.segmentedFrame)
         # Create the button to choose an image
@@ -72,15 +88,15 @@ class ImageDisplayWindow(QMainWindow):
                 max_width, max_height = 512, 288
                 pixmap = pixmap.scaled(max_width, max_height, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation) 
                 self.image_labels[i].setPixmap(pixmap)
-    def resizeEvent(self, event):
-        # Override resizeEvent to keep aspect ratio of the image labels
-        super().resizeEvent(event)
-        for image_label in self.image_labels:
-            pixmap = image_label.pixmap()
-            if pixmap:
-                image_label.setPixmap(pixmap.scaled(image_label.width(), image_label.height(), aspectRatioMode=Qt.KeepAspectRatio))
-
-
+                if (i == 0):
+                    self.captions[i] = "Original Image"
+                elif (i == 1):
+                    self.captions[i] = f"Segmented Image : R-CNN without DnC\n Number Of Objects : {result_tuple[3]} objects"
+                else:
+                    self.captions[i] = f"Segmented Image : R-CNN with DnC\n Number Of Objects : {result_tuple[4]} objects"
+            
+            for i, caption_label in enumerate(self.caption_labels):
+                caption_label.setText(self.captions[i])
 
 def run(pathfile):
     input_image = cv2.imread(pathfile)
@@ -98,25 +114,4 @@ def run(pathfile):
     dnc_segmented, dnc_count = divide_and_conquer(input_image, threshold_height, threshold_width, colors)
     without_dnc, without_dnc_count = segment_image(input_image, colors, True)
 
-    return input_image, dnc_segmented, without_dnc, dnc_count,  without_dnc_count
-
-    # fig, axs = plt.subplots(1, 3, figsize=(12, 4))
-
-    # axs[0].imshow(input_image)
-    # axs[1].imshow(dnc_segmented)
-    # axs[2].imshow(without_dnc)
-
-    # for ax in axs:
-    #     ax.axis('off')
-
-    # axs[0].set_title('Original Image', fontsize=12, weight='bold')
-    # axs[1].set_title('DnC Segmented Image', fontsize=12, weight='bold')
-    # axs[2].set_title('Without DnC Segmented Image', fontsize=12, weight='bold')
-
-    # axs[0].text(0.5, -0.15, 'Original Image', transform=axs[0].transAxes, ha='center', fontsize=12, weight='bold')
-    # axs[2].text(0.5, -0.15, f'Jumlah Objek: {without_dnc_count}', transform=axs[2].transAxes, ha='center', fontsize=12, weight='bold')
-    # axs[1].text(0.5, -0.15, f'Jumlah Objek: {dnc_count}', transform=axs[1].transAxes, ha='center', fontsize=12, weight='bold')
-
-    # plt.tight_layout(pad=2)
-    # plt.show()
-
+    return input_image, without_dnc, dnc_segmented, without_dnc_count, dnc_count
