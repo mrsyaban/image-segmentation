@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QLabel, QHBoxLayout, QWidget, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtCore import Qt
 
@@ -8,23 +8,31 @@ from DnC import *
 class ImageDisplayWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Image Display")
+        self.setWindowTitle("Semantic Segmentation")
         
         # Set the fixed size of the window
-        width, height = 1536, 864
-        self.setFixedSize(width, height)
+        # width, height = 1536, 864
+        # self.setFixedSize(width, height)
         
         # Create the main layout
-        layout = QHBoxLayout()
-        
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        self.segmentedFrame = QFrame(self)
+        self.segmentedLayout = QHBoxLayout(self.segmentedFrame)
+        self.segmentedLayout.setAlignment(Qt.AlignCenter)
+
         # Create the image labels
         self.image_labels = []
-        for _ in range(3):
+        for i in range(3):
             image_label = QLabel()
             image_label.setPixmap(self.get_initial_pixmap())
-            layout.addWidget(image_label)
+            if (i == 0):
+                layout.addWidget(image_label,  alignment=Qt.AlignCenter)
+            else :
+                self.segmentedLayout.addWidget(image_label)
             self.image_labels.append(image_label)
         
+        layout.addWidget(self.segmentedFrame)
         # Create the button to choose an image
         choose_button = QPushButton("Choose Image")
         choose_button.clicked.connect(self.choose_image)
@@ -64,6 +72,15 @@ class ImageDisplayWindow(QMainWindow):
                 max_width, max_height = 512, 288
                 pixmap = pixmap.scaled(max_width, max_height, aspectRatioMode=Qt.KeepAspectRatio, transformMode=Qt.SmoothTransformation) 
                 self.image_labels[i].setPixmap(pixmap)
+    def resizeEvent(self, event):
+        # Override resizeEvent to keep aspect ratio of the image labels
+        super().resizeEvent(event)
+        for image_label in self.image_labels:
+            pixmap = image_label.pixmap()
+            if pixmap:
+                image_label.setPixmap(pixmap.scaled(image_label.width(), image_label.height(), aspectRatioMode=Qt.KeepAspectRatio))
+
+
 
 def run(pathfile):
     input_image = cv2.imread(pathfile)
