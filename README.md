@@ -2,7 +2,7 @@
   <h1 align="center">Semantic Segmentation</h1>
 
   <p align="center">
-    *R-CNN Semantic Segmentation* Optimization using Divide-and-Conquer Algorithm
+    R-CNN Semantic Segmentation Optimization using Divide-and-Conquer Algorithm
     <br />
     <a href="http://bit.ly/ImageSegmentationDemo">View Demo    </a>
     ·
